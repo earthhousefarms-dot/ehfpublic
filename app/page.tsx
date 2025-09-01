@@ -289,7 +289,7 @@ export default function Home() {
           {/* Quote Section */}
           <div className="mt-16 text-center">
             <blockquote className="text-2xl md:text-3xl font-serif text-emerald-700 italic">
-              "The earth does not belong to us; we belong to the earth."
+              &ldquo;The earth does not belong to us; we belong to the earth.&rdquo;
             </blockquote>
             <p className="text-gray-600 mt-4">— Chief Seattle</p>
           </div>
