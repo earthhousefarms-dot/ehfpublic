@@ -1,15 +1,45 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export default function Home() {
   const [activeSection, setActiveSection] = useState('home');
   const [scrollY, setScrollY] = useState(0);
+  const [isVisible, setIsVisible] = useState<{[key: string]: boolean}>({});
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const observerRefs = useRef<{[key: string]: React.RefObject<HTMLElement>}>({});
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePosition({ x: e.clientX, y: e.clientY });
+    };
+    
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener('mousemove', handleMouseMove);
+    
+    // Intersection Observer for scroll animations
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsVisible(prev => ({ ...prev, [entry.target.id]: true }));
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+    
+    // Observe all sections
+    document.querySelectorAll('section[id]').forEach((section) => {
+      observer.observe(section);
+    });
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('mousemove', handleMouseMove);
+      observer.disconnect();
+    };
   }, []);
 
   const courses = [
@@ -156,7 +186,7 @@ export default function Home() {
   ];
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-emerald-50 via-white to-emerald-50">
+    <main className="min-h-screen bg-gradient-to-b from-green-50 via-white to-amber-50">
       {/* Navigation */}
       <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${
         scrollY > 50 ? 'bg-white/95 backdrop-blur-md shadow-lg' : 'bg-transparent'
@@ -166,16 +196,16 @@ export default function Home() {
             <div className="flex items-center gap-3">
               <span className="text-3xl">🌾</span>
               <div>
-                <div className="text-2xl font-serif bg-gradient-to-r from-emerald-800 to-emerald-900 bg-clip-text text-transparent">Earth House Farm</div>
+                <div className="text-2xl font-serif text-emerald-900">Earth House Farm</div>
                 <div className="text-xs text-emerald-700 font-light">Center for Nature Learning</div>
               </div>
             </div>
             <div className="hidden md:flex gap-8">
-              <a href="#philosophy" className="text-gray-700 hover:text-emerald-700 transition font-medium">Philosophy</a>
-              <a href="#programs" className="text-gray-700 hover:text-emerald-700 transition font-medium">Programs</a>
-              <a href="#schools" className="text-gray-700 hover:text-emerald-700 transition font-medium">Schools</a>
-              <a href="#visit" className="text-gray-700 hover:text-emerald-700 transition font-medium">Visit</a>
-              <button className="bg-emerald-700/10 text-emerald-800 px-6 py-2 rounded-full hover:bg-emerald-700/20 transition border border-emerald-700/30 font-medium">
+              <a href="#philosophy" className="text-gray-700 hover:text-emerald-700 transition">Philosophy</a>
+              <a href="#programs" className="text-gray-700 hover:text-emerald-700 transition">Programs</a>
+              <a href="#schools" className="text-gray-700 hover:text-emerald-700 transition">Schools</a>
+              <a href="#visit" className="text-gray-700 hover:text-emerald-700 transition">Visit</a>
+              <button className="bg-emerald-700/10 text-emerald-800 px-6 py-2 rounded-full hover:bg-emerald-700/20 transition border border-emerald-700/30">
                 Join Community
               </button>
             </div>
@@ -185,28 +215,40 @@ export default function Home() {
 
       {/* Hero Section - Atmospheric */}
       <section className="relative h-screen flex items-center justify-center overflow-hidden">
-        {/* Animated Background Elements */}
+        {/* Parallax Background Elements */}
         <div className="absolute inset-0">
-          <div className="absolute top-20 left-10 text-8xl opacity-10 animate-float">🌿</div>
-          <div className="absolute top-40 right-20 text-7xl opacity-10 animate-float-delayed">🍃</div>
-          <div className="absolute bottom-20 left-1/4 text-9xl opacity-10 animate-float">🌾</div>
-          <div className="absolute bottom-40 right-1/3 text-6xl opacity-10 animate-float-delayed">🌱</div>
+          <div 
+            className="absolute top-20 left-10 text-8xl opacity-10 animate-float transition-transform duration-700"
+            style={{ transform: `translate(${mousePosition.x * 0.02}px, ${mousePosition.y * 0.02}px)` }}
+          >🌿</div>
+          <div 
+            className="absolute top-40 right-20 text-7xl opacity-10 animate-float-delayed transition-transform duration-700"
+            style={{ transform: `translate(${-mousePosition.x * 0.03}px, ${mousePosition.y * 0.03}px)` }}
+          >🍃</div>
+          <div 
+            className="absolute bottom-20 left-1/4 text-9xl opacity-10 animate-float transition-transform duration-700"
+            style={{ transform: `translate(${mousePosition.x * 0.015}px, ${-mousePosition.y * 0.015}px)` }}
+          >🌾</div>
+          <div 
+            className="absolute bottom-40 right-1/3 text-6xl opacity-10 animate-float-delayed transition-transform duration-700"
+            style={{ transform: `translate(${-mousePosition.x * 0.025}px, ${-mousePosition.y * 0.025}px)` }}
+          >🌱</div>
         </div>
 
         <div className="relative z-10 text-center px-6 max-w-5xl mx-auto">
-          <h1 className="text-6xl md:text-7xl font-serif bg-gradient-to-r from-emerald-800 to-emerald-900 bg-clip-text text-transparent mb-6 leading-tight">
+          <h1 className="text-6xl md:text-7xl font-serif text-gray-900 mb-6 leading-tight animate-fade-in-up">
             Where Earth
-            <span className="block bg-gradient-to-r from-emerald-700 to-emerald-800 bg-clip-text text-transparent">Teaches</span>
+            <span className="block text-emerald-800 animate-fade-in-up-delayed">Teaches</span>
           </h1>
-          <p className="text-xl md:text-2xl text-gray-700 mb-8 font-light leading-relaxed">
+          <p className="text-xl md:text-2xl text-gray-700 mb-8 font-light leading-relaxed animate-fade-in-up-delayed-2">
             A sanctuary for learning, growth, and reconnection with the natural world.
             <br />Join us in rediscovering ancient wisdom through modern practice.
           </p>
-          <div className="flex gap-4 justify-center flex-wrap">
-            <button className="bg-white/80 backdrop-blur text-emerald-800 px-8 py-4 rounded-full hover:bg-white transition border border-emerald-200 font-medium shadow-lg">
+          <div className="flex gap-4 justify-center flex-wrap animate-fade-in-up-delayed-3">
+            <button className="bg-white/80 backdrop-blur text-emerald-800 px-8 py-4 rounded-full hover:bg-white transition-all hover:scale-105 hover:shadow-xl border border-emerald-200 transform">
               Explore Our Courses
             </button>
-            <button className="bg-gradient-to-r from-emerald-700 to-emerald-800 text-white px-8 py-4 rounded-full hover:from-emerald-800 hover:to-emerald-900 transition shadow-lg font-medium">
+            <button className="bg-emerald-700 text-white px-8 py-4 rounded-full hover:bg-emerald-800 transition-all hover:scale-105 hover:shadow-xl transform">
               Book a School Visit
             </button>
           </div>
@@ -219,21 +261,27 @@ export default function Home() {
       </section>
 
       {/* Philosophy Section */}
-      <section id="philosophy" className="py-20 px-6">
+      <section id="philosophy" className={`py-20 px-6 transition-all duration-1000 ${isVisible['philosophy'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-serif bg-gradient-to-r from-emerald-800 to-emerald-900 bg-clip-text text-transparent mb-4">Our Living Philosophy</h2>
+            <h2 className="text-4xl md:text-5xl font-serif text-gray-900 mb-4">Our Living Philosophy</h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Earth House Farm is more than a place—it&apos;s a way of being that honors the interconnectedness of all life.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {philosophies.map((philosophy) => (
-              <div key={philosophy.title} className="group">
-                <div className="bg-white/50 backdrop-blur rounded-2xl p-8 hover:bg-white/70 transition-all duration-300 hover:shadow-xl">
+            {philosophies.map((philosophy, idx) => (
+              <div 
+                key={philosophy.title} 
+                className="group"
+                style={{
+                  animation: isVisible['philosophy'] ? `slideInFromLeft 0.6s ease-out ${idx * 0.1}s both` : 'none'
+                }}
+              >
+                <div className="bg-white/50 backdrop-blur rounded-2xl p-8 hover:bg-white/70 transition-all duration-300 hover:shadow-xl transform hover:-translate-y-2">
                   <div className="text-4xl mb-4">{philosophy.icon}</div>
-                  <h3 className="text-2xl font-serif text-emerald-800 mb-3">{philosophy.title}</h3>
+                  <h3 className="text-2xl font-serif text-emerald-900 mb-3">{philosophy.title}</h3>
                   <p className="text-gray-600 leading-relaxed">{philosophy.description}</p>
                 </div>
               </div>
@@ -251,35 +299,47 @@ export default function Home() {
       </section>
 
       {/* Programs Section */}
-      <section id="programs" className="py-20 px-6 bg-gradient-to-b from-white to-emerald-50">
+      <section id="programs" className={`py-20 px-6 bg-gradient-to-b from-white to-green-50 transition-all duration-1000 ${isVisible['programs'] ? 'opacity-100' : 'opacity-0'}`}>
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-serif bg-gradient-to-r from-emerald-800 to-emerald-900 bg-clip-text text-transparent mb-4">Learning Pathways</h2>
+            <h2 className="text-4xl md:text-5xl font-serif text-gray-900 mb-4">Learning Pathways</h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Immersive experiences that deepen your connection with nature and sustainable living
             </p>
           </div>
 
-          {courses.map((category) => (
-            <div key={category.category} className="mb-16">
+          {courses.map((category, catIdx) => (
+            <div 
+              key={category.category} 
+              className="mb-16"
+              style={{
+                animation: isVisible['programs'] ? `fadeIn 0.8s ease-out ${catIdx * 0.2}s both` : 'none'
+              }}
+            >
               <div className="flex items-center gap-3 mb-8">
                 <span className="text-4xl">{category.icon}</span>
-                <h3 className="text-3xl font-serif text-emerald-800">{category.category}</h3>
+                <h3 className="text-3xl font-serif text-emerald-900">{category.category}</h3>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {category.programs.map((program) => (
-                  <div key={program.title} className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-emerald-100">
+                {category.programs.map((program, progIdx) => (
+                  <div 
+                    key={program.title} 
+                    className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 hover:scale-105"
+                    style={{
+                      animation: isVisible['programs'] ? `slideUp 0.5s ease-out ${(catIdx * 0.2) + (progIdx * 0.1)}s both` : 'none'
+                    }}
+                  >
                     <div className="flex justify-between items-start mb-4">
-                      <h4 className="text-xl font-semibold text-emerald-700">{program.title}</h4>
-                      <span className="text-xs bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full font-medium">
+                      <h4 className="text-xl font-semibold text-emerald-800">{program.title}</h4>
+                      <span className="text-xs bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full">
                         {program.type}
                       </span>
                     </div>
                     <p className="text-gray-600 mb-4">{program.description}</p>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-500">Duration: {program.duration}</span>
-                      <button className="text-emerald-600 hover:text-emerald-700 font-medium">
+                      <button className="text-emerald-700 hover:text-emerald-800 font-medium">
                         Learn More →
                       </button>
                     </div>
@@ -300,21 +360,27 @@ export default function Home() {
       </section>
 
       {/* School Programs Section */}
-      <section id="schools" className="py-20 px-6 bg-gradient-to-b from-emerald-50 to-white">
+      <section id="schools" className={`py-20 px-6 bg-gradient-to-b from-green-50 to-white transition-all duration-1000 ${isVisible['schools'] ? 'opacity-100' : 'opacity-0'}`}>
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-serif bg-gradient-to-r from-emerald-800 to-emerald-900 bg-clip-text text-transparent mb-4">School Programs</h2>
+            <h2 className="text-4xl md:text-5xl font-serif text-gray-900 mb-4">School Programs</h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Bringing students into direct contact with nature&apos;s classroom
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-            {schoolPrograms.map((program) => (
-              <div key={program.age} className="bg-white rounded-2xl p-8 shadow-lg border border-emerald-100">
+            {schoolPrograms.map((program, idx) => (
+              <div 
+                key={program.age} 
+                className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-3 hover:scale-105"
+                style={{
+                  animation: isVisible['schools'] ? `zoomIn 0.5s ease-out ${idx * 0.15}s both` : 'none'
+                }}
+              >
                 <div className="text-center mb-6">
                   <div className="text-5xl mb-3">🎒</div>
-                  <h3 className="text-2xl font-serif text-emerald-800">{program.title}</h3>
+                  <h3 className="text-2xl font-serif text-emerald-900">{program.title}</h3>
                   <p className="text-emerald-700 font-medium">{program.age}</p>
                 </div>
                 
@@ -323,7 +389,7 @@ export default function Home() {
                   <ul className="space-y-2">
                     {program.activities.map((activity) => (
                       <li key={activity} className="flex items-center text-gray-600">
-                        <span className="text-emerald-600 mr-2 font-bold">•</span>
+                        <span className="text-emerald-600 mr-2">•</span>
                         {activity}
                       </li>
                     ))}
@@ -332,7 +398,7 @@ export default function Home() {
                 
                 <div className="text-center">
                   <p className="text-sm text-gray-500 mb-4">Duration: {program.duration}</p>
-                  <button className="bg-emerald-100 text-emerald-700 px-6 py-2 rounded-full hover:bg-emerald-200 transition font-medium">
+                  <button className="bg-emerald-100 text-emerald-700 px-6 py-2 rounded-full hover:bg-emerald-200 transition-all hover:scale-110 transform">
                     Book Visit
                   </button>
                 </div>
@@ -341,7 +407,7 @@ export default function Home() {
           </div>
 
           {/* Teacher Testimonial */}
-          <div className="bg-emerald-100/50 rounded-2xl p-8 border border-emerald-200">
+          <div className="bg-emerald-100/50 rounded-2xl p-8">
             <blockquote className="text-xl text-emerald-800 italic text-center">
               "Our students left Earth House Farm with dirty hands, big smiles, and a newfound respect for nature. 
               This experience sparked conversations about sustainability that continued for weeks."
@@ -352,38 +418,58 @@ export default function Home() {
       </section>
 
       {/* Weekend Experiences */}
-      <section className="py-20 px-6 bg-gradient-to-b from-white to-amber-50">
+      <section id="weekend" className={`py-20 px-6 bg-gradient-to-b from-white to-amber-50 transition-all duration-1000 ${isVisible['weekend'] ? 'opacity-100' : 'opacity-0'}`}>
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-serif bg-gradient-to-r from-emerald-800 to-emerald-900 bg-clip-text text-transparent mb-4">Weekend Experiences</h2>
+            <h2 className="text-4xl md:text-5xl font-serif text-gray-900 mb-4">Weekend Experiences</h2>
             <p className="text-xl text-gray-600">Join our community gatherings and special events</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-white rounded-xl p-6 shadow-lg border border-emerald-100">
+            <div 
+              className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 hover:rotate-1"
+              style={{
+                animation: isVisible['weekend'] ? 'flipIn 0.6s ease-out both' : 'none'
+              }}
+            >
               <div className="text-4xl mb-4">🧘‍♀️</div>
-              <h3 className="text-xl font-serif text-emerald-800 mb-2">Sunrise Yoga</h3>
+              <h3 className="text-xl font-serif text-emerald-900 mb-2">Sunrise Yoga</h3>
               <p className="text-gray-600 text-sm mb-3">Saturdays & Sundays, 7am</p>
               <p className="text-gray-500 text-sm">Greet the day with gentle movement in our meadow</p>
             </div>
             
-            <div className="bg-white rounded-xl p-6 shadow-lg border border-emerald-100">
+            <div 
+              className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 hover:-rotate-1"
+              style={{
+                animation: isVisible['weekend'] ? 'flipIn 0.6s ease-out 0.1s both' : 'none'
+              }}
+            >
               <div className="text-4xl mb-4">🌿</div>
-              <h3 className="text-xl font-serif text-emerald-800 mb-2">Herb Walks</h3>
+              <h3 className="text-xl font-serif text-emerald-900 mb-2">Herb Walks</h3>
               <p className="text-gray-600 text-sm mb-3">First Sunday monthly</p>
               <p className="text-gray-500 text-sm">Identify and harvest medicinal plants</p>
             </div>
             
-            <div className="bg-white rounded-xl p-6 shadow-lg border border-emerald-100">
+            <div 
+              className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 hover:rotate-1"
+              style={{
+                animation: isVisible['weekend'] ? 'flipIn 0.6s ease-out 0.2s both' : 'none'
+              }}
+            >
               <div className="text-4xl mb-4">👨‍👩‍👧‍👦</div>
-              <h3 className="text-xl font-serif text-emerald-800 mb-2">Family Days</h3>
+              <h3 className="text-xl font-serif text-emerald-900 mb-2">Family Days</h3>
               <p className="text-gray-600 text-sm mb-3">Last Saturday monthly</p>
               <p className="text-gray-500 text-sm">Activities for all ages to enjoy together</p>
             </div>
             
-            <div className="bg-white rounded-xl p-6 shadow-lg border border-emerald-100">
+            <div 
+              className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 hover:-rotate-1"
+              style={{
+                animation: isVisible['weekend'] ? 'flipIn 0.6s ease-out 0.3s both' : 'none'
+              }}
+            >
               <div className="text-4xl mb-4">🌙</div>
-              <h3 className="text-xl font-serif text-emerald-800 mb-2">Moon Circles</h3>
+              <h3 className="text-xl font-serif text-emerald-900 mb-2">Moon Circles</h3>
               <p className="text-gray-600 text-sm mb-3">Full moon evenings</p>
               <p className="text-gray-500 text-sm">Meditation and reflection under the stars</p>
             </div>
@@ -435,16 +521,16 @@ export default function Home() {
 
             <div>
               <h3 className="text-2xl font-serif mb-6">Connect With Us</h3>
-              <div className="bg-white/10 backdrop-blur rounded-xl p-6 border border-emerald-700/30">
+              <div className="bg-white/10 backdrop-blur rounded-xl p-6">
                 <p className="mb-4 text-emerald-100">
                   Whether you&apos;re seeking knowledge, peace, or community, we welcome you to Earth House Farm. 
                   Our gates are open to all who wish to learn and grow with the earth.
                 </p>
                 <div className="space-y-3">
-                  <button className="w-full bg-white text-emerald-800 py-3 rounded-full hover:bg-emerald-50 transition font-semibold shadow-lg">
+                  <button className="w-full bg-white text-emerald-800 py-3 rounded-full hover:bg-emerald-50 transition-all hover:scale-105 transform font-semibold">
                     Join Our Newsletter
                   </button>
-                  <button className="w-full bg-gradient-to-r from-emerald-600 to-emerald-700 text-white py-3 rounded-full hover:from-emerald-700 hover:to-emerald-800 transition font-semibold shadow-lg">
+                  <button className="w-full bg-emerald-700 text-white py-3 rounded-full hover:bg-emerald-800 transition-all hover:scale-105 transform font-semibold">
                     Schedule a Visit
                   </button>
                 </div>
@@ -491,12 +577,77 @@ export default function Home() {
           50% { transform: translateY(-15px); }
         }
         
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        
+        @keyframes slideInFromLeft {
+          from {
+            opacity: 0;
+            transform: translateX(-50px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+        
+        @keyframes slideUp {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        @keyframes zoomIn {
+          from {
+            opacity: 0;
+            transform: scale(0.8);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+        
+        @keyframes flipIn {
+          from {
+            opacity: 0;
+            transform: perspective(400px) rotateX(90deg);
+          }
+          to {
+            opacity: 1;
+            transform: perspective(400px) rotateX(0);
+          }
+        }
+        
         .animate-float {
           animation: float 6s ease-in-out infinite;
         }
         
         .animate-float-delayed {
           animation: float-delayed 8s ease-in-out infinite;
+        }
+        
+        .animate-fade-in-up {
+          animation: slideUp 0.8s ease-out both;
+        }
+        
+        .animate-fade-in-up-delayed {
+          animation: slideUp 0.8s ease-out 0.2s both;
+        }
+        
+        .animate-fade-in-up-delayed-2 {
+          animation: slideUp 0.8s ease-out 0.4s both;
+        }
+        
+        .animate-fade-in-up-delayed-3 {
+          animation: slideUp 0.8s ease-out 0.6s both;
         }
       `}</style>
     </main>
