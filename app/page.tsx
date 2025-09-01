@@ -1,13 +1,11 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function Home() {
-  const [activeSection, setActiveSection] = useState('home');
   const [scrollY, setScrollY] = useState(0);
   const [isVisible, setIsVisible] = useState<{[key: string]: boolean}>({});
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const observerRefs = useRef<{[key: string]: React.RefObject<HTMLElement>}>({});
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
@@ -409,8 +407,8 @@ export default function Home() {
           {/* Teacher Testimonial */}
           <div className="bg-emerald-100/50 rounded-2xl p-8">
             <blockquote className="text-xl text-emerald-800 italic text-center">
-              "Our students left Earth House Farm with dirty hands, big smiles, and a newfound respect for nature. 
-              This experience sparked conversations about sustainability that continued for weeks."
+              &ldquo;Our students left Earth House Farm with dirty hands, big smiles, and a newfound respect for nature. 
+              This experience sparked conversations about sustainability that continued for weeks.&rdquo;
             </blockquote>
             <p className="text-center text-gray-600 mt-4">— Ms. Thompson, 4th Grade Teacher</p>
           </div>
